@@ -1,0 +1,49 @@
+FROM ubuntu:20.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Cài đặt dependencies
+RUN apt-get update && apt-get install -y \
+    apache2 \
+    apache2-utils \
+    php \
+    php-mysql \
+    php-gd \
+    libapache2-mod-php \
+    libapache2-mod-security2 \
+    curl \
+    apt-utils \
+    wget \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Enable Apache modules
+RUN a2enmod rewrite \
+    && a2enmod security2 \
+    && a2enmod headers \
+    && a2enmod php7.4
+
+# Clone DVWA
+RUN git clone https://github.com/digininja/DVWA.git /var/www/html/dvwa || true
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 755 /var/www/html
+
+# Download OWASP CRS
+RUN git clone https://github.com/coreruleset/coreruleset /usr/share/modsecurity-crs \
+    && cp /usr/share/modsecurity-crs/crs-setup.conf.example /usr/share/modsecurity-crs/crs-setup.conf
+
+# Create log directories
+RUN mkdir -p /var/log/modsec \
+    && chown -R www-data:www-data /var/log/modsec
+
+# Copy custom ModSecurity config (sẽ được mount)
+# Default security config
+COPY configs/modsecurity/modsecurity.conf /etc/apache2/mods-available/modsecurity.conf || true
+
+# Expose port
+EXPOSE 80
+
+# Start Apache
+CMD ["apache2ctl", "-D", "FOREGROUND"]

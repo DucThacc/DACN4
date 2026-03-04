@@ -1,0 +1,179 @@
+%YAML 1.1
+---
+
+# Suricata Configuration for IDS/IPS
+# ==================================
+
+# Home and external networks
+# ⚠️ THAY ĐỔI CÁC IP NÀY CHO PHÙ HỢP:
+# - HOME_NET: IP range của Docker network (VD: 172.20.0.0/16)
+# - EXTERNAL_NET: Everything else
+vars:
+  address-groups:
+    HOME_NET: "[172.20.0.0/16]"  # ← Docker network subnet
+    EXTERNAL_NET: "!$HOME_NET"
+    HTTP_PORTS: "80,8080,8888,8443"
+    SHELLCODE_PORTS: "!80"
+    SSH_PORTS: "22"
+    DNS_PORTS: "53"
+    FILE_DATA_PORTS: "$HTTP_PORTS,110,143"
+    FTP_PORTS: "21"
+    DCERPC_PORTS: "135,139,445,593,49152:49161"
+    DNSCLIENT_PORTS: "1024:65535"
+    DNP3_PORTS: "20000"
+    MODBUS_PORTS: "502"
+
+# Logging configuration
+outputs:
+  - eve-log:
+      enabled: yes
+      filename: /var/log/suricata/eve.json
+      # ⚠️ FORMAT: JSON cho dễ phân tích
+      types:
+        - alert
+        - http
+        - dns
+        - tls
+        - ssh
+        - fileinfo
+        - drop
+        - payload
+      # Rotation config
+      rotate: daily
+      retention:
+        count: 7
+        timestamp: true
+
+  - stats:
+      enabled: yes
+      filename: /var/log/suricata/stats.log
+      totals: no
+      threads: yes
+
+# Detection engine setup
+detect:
+  profile: balanced  # high, balanced (default), or custom
+  custom-values:
+    toclient-groups: 4
+    toserver-groups: 4
+
+# Protocol detection
+protocol-detection:
+  enabled: yes
+
+# IDS/IPS Mode
+# ⚠️ CHUYỂN ĐỔI MODE:
+# - idsonly: chỉ detect (default)
+# - ips: enable blocking (cần iptables rules)
+mode: idsmode
+# mode: ipsmode  # ← Uncomment đây để bật IPS mode
+
+# Ruleset configuration
+rule-files:
+  - suricata.rules
+  - custom-rules.rules
+
+# Threading configuration (cho 8GB RAM)
+threading:
+  set-cpu-affinity: no
+  default-packet-handler: workers
+  workers:
+    - worker_id: 1
+      cpu-set: "0-1"  # ← 2 cores
+      mode: "workers"
+      packet-buffer-size: 64000
+      packet-slots: 1640
+      flow-worker-cpu-set: "0-1"
+      flow-worker-mode: "exclusive"
+
+# Flow configuration
+flow:
+  memcap: 268435456  # 256MB
+  hash-size: 65536
+  prealloc-sessions: 40000
+  emergency-recovery: 30
+
+# Capture interface configuration
+# ⚠️ THAY ĐỔI INTERFACE:
+# eth0, ens0, enp0s3, wlan0, vv - dùng `ip link show` để kiểm tra
+af-packet:
+  - interface: eth0  # ← THAY ĐỔI
+    cluster-id: 99
+    cluster-type: cluster_round_robin
+    defrag: yes
+    use-mmap: yes
+    mmap-locked: yes
+    ring-size: 200000
+    block-size: 32768
+    use-emergency-flush: yes
+    tpacket-v3: yes
+    use-all-cpus: no
+    cpus: [0, 1]
+
+# App layer configuration
+app-layer:
+  protocols:
+    http:
+      enabled: yes
+      memcap: 268435456  # 256MB
+    ssh:
+      enabled: yes
+    dns:
+      enabled: yes
+    tls:
+      enabled: yes
+
+# DNS logger
+dns:
+  enabled: yes
+  log-queries: yes
+  log-answers: yes
+
+# HTTP logger
+http-log:
+  enabled: yes
+  extended: yes
+  custom-log-format: "%t [%ft] \"%rm %ru HTTP/%rv\" %rs %bb \"%{Referer}i\" \"%{User-Agent}i\" \"%{Host}i\""
+
+# TLS logger
+tls-log:
+  enabled: yes
+  extended: yes
+
+# SSH logger
+ssh-log:
+  enabled: yes
+
+# File extraction
+file-store:
+  enabled: no  # ← Bật nếu cần extract files
+  base-dir: /var/lib/suricata/files
+
+# Unified2 output (optional)
+# unified2-log:
+#   enabled: no
+#   filename: /var/log/suricata/unified2.log
+
+# Default log directory
+default-log-dir: /var/log/suricata
+
+# Exception list
+exception-policy:
+  memcap: 268435456  # 256MB
+
+# System settings
+system:
+  pidfile: /var/run/suricata.pid
+  default-log-level: notice
+  unix-command:
+    enabled: no
+
+# Performance tuning
+performance:
+  profile: balanced
+
+# Security group rules (if using ips mode)
+# ⚠️ UNCOMMENT KHI DÙNG IPS MODE:
+# iptables rules cần được run trên host:
+# iptables -I INPUT 1 -j NFQUEUE --queue-num 0
+# iptables -I FORWARD 1 -j NFQUEUE --queue-num 0

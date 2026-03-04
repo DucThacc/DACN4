@@ -1,0 +1,106 @@
+# Custom Suricata Rules for DVWA Testing
+# ========================================
+
+# SQL Injection Detection
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"SQL Injection - UNION"; \
+  flow:to_server,established; content:"GET"; http_method; \
+  content:"UNION"; http_uri; nocase; \
+  classtype:web-application-attack; sid:1001001; rev:1; \
+  reference:url,https://owasp.org/www-community/attacks/SQL_Injection;)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"SQL Injection - OR 1=1"; \
+  flow:to_server,established; \
+  content:"OR"; http_uri; nocase; \
+  content:"1"; http_uri; distance:0; \
+  classtype:web-application-attack; sid:1001002; rev:1;)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"SQL Injection - Comments"; \
+  flow:to_server,established; \
+  content:"|2D 2D|"; http_uri; \
+  classtype:web-application-attack; sid:1001003; rev:1;)
+
+# XSS Detection
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"XSS - Script Tags"; \
+  flow:to_server,established; \
+  content:"<script"; http_uri; nocase; \
+  classtype:web-application-attack; sid:1001004; rev:1;)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"XSS - JavaScript Event Handlers"; \
+  flow:to_server,established; \
+  content:"on"; http_uri; nocase; \
+  content:"="; pcre:"/on\w+\s*=/i"; http_uri; \
+  classtype:web-application-attack; sid:1001005; rev:1;)
+
+# LFI Detection
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"LFI - Directory Traversal"; \
+  flow:to_server,established; \
+  content:"../"; http_uri; \
+  classtype:web-application-attack; sid:1001006; rev:1;)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"LFI - etc/passwd"; \
+  flow:to_server,established; \
+  content:"etc/passwd"; http_uri; nocase; \
+  classtype:web-application-attack; sid:1001007; rev:1;)
+
+# RFI Detection
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"RFI - External URL"; \
+  flow:to_server,established; \
+  content:"http://"; http_uri; nocase; \
+  classtype:web-application-attack; sid:1001008; rev:1;)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"RFI - FTP URL"; \
+  flow:to_server,established; \
+  content:"ftp://"; http_uri; nocase; \
+  classtype:web-application-attack; sid:1001009; rev:1;)
+
+# Port Scan Detection
+alert tcp any any -> $HOME_NET any (msg:"SCAN - Nmap SYN Scan"; \
+  flags:S,12; window:1024; \
+  classtype:scanning; sid:1001010; rev:1;)
+
+alert tcp $EXTERNAL_NET any -> $HOME_NET any (msg:"SCAN - Nmap NULL Scan"; \
+  flags:0,0; \
+  classtype:scanning; sid:1001011; rev:1;)
+
+# SSH Brute Force Detection
+alert ssh $EXTERNAL_NET any -> $HOME_NET $SSH_PORTS (msg:"SSH - Excessive Failed Logins"; \
+  flow:to_server,established; \
+  content:"SSH-"; \
+  classtype:suspicious-login; sid:1001012; rev:1;)
+
+# HTTP Scanner Detection
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"SCANNER - Nikto User-Agent"; \
+  flow:to_server,established; \
+  content:"Nikto"; http_user_agent; nocase; \
+  classtype:scanner-activity; sid:1001013; rev:1;)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"SCANNER - SQLMap User-Agent"; \
+  flow:to_server,established; \
+  content:"sqlmap"; http_user_agent; nocase; \
+  classtype:scanner-activity; sid:1001014; rev:1;)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"SCANNER - Nessus User-Agent"; \
+  flow:to_server,established; \
+  content:"Nessus"; http_user_agent; nocase; \
+  classtype:scanner-activity; sid:1001015; rev:1;)
+
+# Command Injection
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"COMMAND INJECTION - Pipe Symbol"; \
+  flow:to_server,established; \
+  content:"|"; http_uri; \
+  classtype:web-application-attack; sid:1001016; rev:1;)
+
+alert http $EXTERNAL_NET any -> $HOME_NET $HTTP_PORTS (msg:"COMMAND INJECTION - Semicolon"; \
+  flow:to_server,established; \
+  content:";"; http_uri; \
+  classtype:web-application-attack; sid:1001017; rev:1;)
+
+# Response Analysis
+alert http any any -> any any (msg:"RESPONSE - Sensitive Data Leaked"; \
+  content:"password"; http_reply_body; nocase; \
+  classtype:sensitive-data; sid:1001018; rev:1;)
+
+alert http any any -> any any (msg:"RESPONSE - Error Message Disclosure"; \
+  content:"SQL"; http_reply_body; nocase; \
+  content:"error"; http_reply_body; nocase; \
+  classtype:web-application-attack; sid:1001019; rev:1;)

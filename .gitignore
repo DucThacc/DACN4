@@ -1,0 +1,42 @@
+# Logs and runtime files
+logs/
+*.log
+*.json
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Environment
+.env.local
+.env.*.local
+.DS_Store
+
+# IDE/Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# OS files
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Rule backups
+*.backup
+*.bak

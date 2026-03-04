@@ -1,0 +1,71 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:5.7
+    container_name: mysql-dvwa
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: dvwa
+      MYSQL_USER: dvwa
+      MYSQL_PASSWORD: dvwa
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    mem_limit: 256m
+    memswap_limit: 256m
+    restart: unless-stopped
+    networks:
+      - web-shield
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  dvwa:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dvwa-app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      MYSQL_HOSTNAME: mysql
+      MYSQL_USERNAME: dvwa
+      MYSQL_PASSWORD: dvwa
+      MYSQL_DB: dvwa
+    ports:
+      - "80:80"
+    volumes:
+      - ./configs/modsecurity/modsecurity.conf:/etc/apache2/mods-available/modsecurity.conf:ro
+      - ./configs/modsecurity/crs-setup.conf:/usr/share/modsecurity-crs/crs-setup.conf:ro
+      - ./configs/modsecurity/default.conf:/etc/apache2/sites-enabled/000-default.conf:ro
+      - ./logs/modsec_audit:/var/log/modsec/:rw
+      - ./logs/apache_access:/var/log/apache2/:rw
+    mem_limit: 512m
+    memswap_limit: 512m
+    restart: unless-stopped
+    networks:
+      - web-shield
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  mysql_data:
+
+networks:
+  web-shield:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
