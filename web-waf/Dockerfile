@@ -24,8 +24,11 @@ RUN a2enmod rewrite \
     && a2enmod headers \
     && a2enmod php7.4
 
-# Clone DVWA
-RUN git clone https://github.com/digininja/DVWA.git /var/www/html/dvwa || true
+# Clone DVWA and ensure base config exists in the image
+RUN rm -rf /var/www/html/dvwa \
+    && git clone https://github.com/digininja/DVWA.git /var/www/html/dvwa \
+    && test -f /var/www/html/dvwa/config/config.inc.php.dist \
+    && cp /var/www/html/dvwa/config/config.inc.php.dist /var/www/html/dvwa/config/config.inc.php
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \

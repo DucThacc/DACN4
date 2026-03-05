@@ -30,7 +30,11 @@ fi
 
 mkdir -p logs/modsec_audit logs/apache_access
 
-$DOCKER_COMPOSE_CMD up -d
+echo -e "${YELLOW}[*] Building images...${NC}"
+$DOCKER_COMPOSE_CMD build --pull
+
+echo -e "${YELLOW}[*] Recreating services...${NC}"
+$DOCKER_COMPOSE_CMD up -d --force-recreate
 
 echo -e "${YELLOW}[*] Waiting services...${NC}"
 sleep 10
