@@ -47,6 +47,9 @@ RUN mkdir -p /var/log/modsec \
 # Default security config
 COPY configs/modsecurity/modsecurity.conf /etc/apache2/mods-available/modsecurity.conf
 
+# Copy Apache site configuration
+COPY configs/modsecurity/default.conf /etc/apache2/sites-available/000-default.conf
+
 # Expose port
 EXPOSE 80
 
