@@ -60,13 +60,16 @@ VulnApp/
 
 ## ⚙️ Yêu cầu hệ thống
 
-**Máy tính/Server Ubuntu:**
+**Yêu cầu hệ thống:**
 - OS: Ubuntu 20.04 LTS hoặc mới hơn
 - RAM: Minimum 8GB (khuyến nghị 16GB)
 - CPU: 4+ cores
 - Storage: 20GB free space
-- Docker Engine: 20.10+
-- Docker Compose: 1.29+
+- **Docker Engine: 20.10+**
+- **Docker Compose: v1.29+ HOẶC v2.x (script tự động detect)**
+  - ✅ Hỗ trợ `docker-compose` (v1)
+  - ✅ Hỗ trợ `docker compose` (v2)
+  - Script tự động chọn đúng phiên bản
 
 **Trên máy phát triển (Development):**
 - Git

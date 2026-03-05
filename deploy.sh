@@ -38,6 +38,22 @@ fi
 echo -e "${GREEN}✓ Prerequisites OK${NC}"
 echo ""
 
+# Detect Docker Compose version and set command
+echo -e "${YELLOW}[*] Detecting Docker Compose version...${NC}"
+if docker compose version &>/dev/null 2>&1; then
+    # Docker Compose v2 (default)
+    DOCKER_COMPOSE_CMD="docker compose"
+    echo -e "${GREEN}✓ Using Docker Compose v2 (docker compose)${NC}"
+elif docker-compose version &>/dev/null 2>&1; then
+    # Docker Compose v1 (fallback)
+    DOCKER_COMPOSE_CMD="docker-compose"
+    echo -e "${GREEN}✓ Using Docker Compose v1 (docker-compose)${NC}"
+else
+    echo -e "${RED}❌ Docker Compose not found (neither v1 nor v2)${NC}"
+    exit 1
+fi
+echo ""
+
 # Check if running as root for IPS mode
 if [[ "$1" == "ips" ]]; then
     if [[ $EUID -ne 0 ]]; then
@@ -55,7 +71,7 @@ cd web-waf
 mkdir -p logs/modsec_audit logs/apache_access
 
 # Start services
-docker-compose up -d
+$DOCKER_COMPOSE_CMD up -d
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Web-WAF services started${NC}"
 else
@@ -92,7 +108,7 @@ cd suricata
 mkdir -p logs
 
 # Start Suricata
-docker-compose up -d
+$DOCKER_COMPOSE_CMD up -d
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}✓ Suricata service started${NC}"
 else
@@ -124,7 +140,7 @@ if [[ "$1" == "ips" ]]; then
     
     # Update Suricata config
     sed -i 's/mode: idsmode/mode: ipsmode/' suricata/configs/suricata.yaml
-    docker-compose -f suricata/docker-compose.yml restart suricata
+    $DOCKER_COMPOSE_CMD -f suricata/docker-compose.yml restart suricata
     
     echo -e "${GREEN}✓ IPS mode enabled${NC}"
 else

@@ -1,5 +1,7 @@
 # VulnApp - Quick Reference Card
 
+**Note**: Script này tự động detect và chạy được với cả `docker-compose` (v1) và `docker compose` (v2) ✅
+
 ## 📋 Pre-Deployment Checklist
 
 ```bash
