@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     php-gd \
     libapache2-mod-php \
     libapache2-mod-security2 \
+    mysql-client \
     curl \
     apt-utils \
     wget \
@@ -25,16 +26,6 @@ RUN a2enmod rewrite \
 
 # Clone DVWA
 RUN git clone https://github.com/digininja/DVWA.git /var/www/html/dvwa || true
-
-# Configure DVWA
-RUN cd /var/www/html/dvwa/config \
-    && cp config.inc.php.dist config.inc.php \
-    && sed -i "s/\$_DVWA\[ 'db_server' \]   = '127.0.0.1';/\$_DVWA[ 'db_server' ]   = 'mysql';/" config.inc.php \
-    && sed -i "s/\$_DVWA\[ 'db_database' \] = 'dvwa';/\$_DVWA[ 'db_database' ] = 'dvwa';/" config.inc.php \
-    && sed -i "s/\$_DVWA\[ 'db_user' \]     = 'dvwa';/\$_DVWA[ 'db_user' ]     = 'dvwa';/" config.inc.php \
-    && sed -i "s/\$_DVWA\[ 'db_password' \] = 'p@ssw0rd';/\$_DVWA[ 'db_password' ] = 'dvwa';/" config.inc.php \
-    && sed -i "s/\$_DVWA\[ 'recaptcha_public_key' \]  = '';/\$_DVWA[ 'recaptcha_public_key' ]  = '';/" config.inc.php \
-    && sed -i "s/\$_DVWA\[ 'recaptcha_private_key' \] = '';/\$_DVWA[ 'recaptcha_private_key' ] = '';/" config.inc.php
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
@@ -60,8 +51,12 @@ COPY configs/modsecurity/modsecurity.conf /etc/apache2/mods-available/modsecurit
 # Copy Apache site configuration
 COPY configs/modsecurity/default.conf /etc/apache2/sites-available/000-default.conf
 
+# Copy entrypoint script
+COPY scripts/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 # Expose port
 EXPOSE 80
 
-# Start Apache
-CMD ["apache2ctl", "-D", "FOREGROUND"]
+# Start Apache via entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
