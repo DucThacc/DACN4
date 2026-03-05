@@ -26,6 +26,16 @@ RUN a2enmod rewrite \
 # Clone DVWA
 RUN git clone https://github.com/digininja/DVWA.git /var/www/html/dvwa || true
 
+# Configure DVWA
+RUN cd /var/www/html/dvwa/config \
+    && cp config.inc.php.dist config.inc.php \
+    && sed -i "s/\$_DVWA\[ 'db_server' \]   = '127.0.0.1';/\$_DVWA[ 'db_server' ]   = 'mysql';/" config.inc.php \
+    && sed -i "s/\$_DVWA\[ 'db_database' \] = 'dvwa';/\$_DVWA[ 'db_database' ] = 'dvwa';/" config.inc.php \
+    && sed -i "s/\$_DVWA\[ 'db_user' \]     = 'dvwa';/\$_DVWA[ 'db_user' ]     = 'dvwa';/" config.inc.php \
+    && sed -i "s/\$_DVWA\[ 'db_password' \] = 'p@ssw0rd';/\$_DVWA[ 'db_password' ] = 'dvwa';/" config.inc.php \
+    && sed -i "s/\$_DVWA\[ 'recaptcha_public_key' \]  = '';/\$_DVWA[ 'recaptcha_public_key' ]  = '';/" config.inc.php \
+    && sed -i "s/\$_DVWA\[ 'recaptcha_private_key' \] = '';/\$_DVWA[ 'recaptcha_private_key' ] = '';/" config.inc.php
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
