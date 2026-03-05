@@ -17,7 +17,7 @@ services:
     networks:
       - web-shield
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -udvwa -pdvwa --silent"]
       timeout: 20s
       retries: 10
     logging:

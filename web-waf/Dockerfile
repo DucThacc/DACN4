@@ -27,6 +27,7 @@ RUN a2enmod rewrite \
 # Clone DVWA and ensure base config exists in the image
 RUN rm -rf /var/www/html/dvwa \
     && git clone https://github.com/digininja/DVWA.git /var/www/html/dvwa \
+    && sed -i "s/ADD COLUMN IF NOT EXISTS/ADD COLUMN/g" /var/www/html/dvwa/dvwa/includes/DBMS/MySQL.php \
     && test -f /var/www/html/dvwa/config/config.inc.php.dist \
     && cp /var/www/html/dvwa/config/config.inc.php.dist /var/www/html/dvwa/config/config.inc.php
 

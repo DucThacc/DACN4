@@ -11,12 +11,12 @@ until mysql -h mysql -u dvwa -pdvwa -e "SELECT 1" &>/dev/null; do
 done
 echo "[+] MySQL is ready!"
 
-# Configure DVWA (always enforce DB values to avoid stale 127.0.0.1 config)
+# Configure DVWA (always reset from dist to avoid stale values from old runs)
 echo "[*] Configuring DVWA..."
 cd /var/www/html/dvwa/config
 
-if [ ! -f config.inc.php ] && [ -f config.inc.php.dist ]; then
-    cp config.inc.php.dist config.inc.php
+if [ -f config.inc.php.dist ]; then
+    cp -f config.inc.php.dist config.inc.php
 fi
 
 if [ -f config.inc.php ]; then
@@ -31,6 +31,8 @@ if [ -f config.inc.php ]; then
     sed -i "s/\$_DVWA\[ 'recaptcha_private_key' \].*=.*/\$_DVWA[ 'recaptcha_private_key' ] = '';/" config.inc.php
 
     echo "[+] DVWA configured successfully!"
+    echo "[*] Effective DB config:"
+    grep -E "db_server|db_database|db_user|db_password" config.inc.php || true
 else
     echo "[!] ERROR: config.inc.php.dist not found in /var/www/html/dvwa/config"
     exit 1
