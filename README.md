@@ -88,13 +88,16 @@ git clone <your-repo> vulnapp && cd vulnapp
 ### 2️⃣ ⚠️ CẬP NHẬT CÁC ĐỊA CHỈ IP (QUAN TRỌNG!)
 Xem phần [CÁC ĐỊA CHỈ IP CẦN THAY ĐỔI](#các-địa-chỉ-ip-cần-thay-đổi) bên dưới
 
-### 3️⃣ Deploy
+### 3️⃣ Deploy (tách riêng từng stack)
 ```bash
-# IDS mode (Detection only)
-bash deploy.sh
+# Web + WAF
+cd web-waf && bash deploy.sh
 
-# IPS mode (Blocking) - yêu cầu root
-sudo bash deploy.sh ips
+# Suricata IDS
+cd ../suricata && bash deploy.sh
+
+# Suricata IPS (Blocking) - yêu cầu root
+cd ../suricata && sudo bash deploy.sh ips
 ```
 
 ### 4️⃣ Kiểm tra
@@ -229,18 +232,17 @@ af-packet:
 
 ## 📚 Deployment Chi Tiết
 
-### **Cách 1: Sử dụng Deploy Script (KHUYẾN NGHỊ)**
+### **Cách 1: Sử dụng Deploy Script theo từng folder (KHUYẾN NGHỊ)**
 
 ```bash
-# 1. IDS Mode (Detection only)
-bash deploy.sh
+# 1. Deploy Web-WAF
+cd web-waf && bash deploy.sh
 
-# 2. IPS Mode (Blocking - yêu cầu root)
-sudo bash deploy.sh ips
+# 2. Deploy Suricata IDS
+cd ../suricata && bash deploy.sh
 
-# 3. Xem status
-docker-compose -f web-waf/docker-compose.yml ps
-docker-compose -f suricata/docker-compose.yml ps
+# 3. Chuyển Suricata sang IPS (tuỳ chọn)
+cd ../suricata && sudo bash deploy.sh ips
 ```
 
 ### **Cách 2: Manual Deployment**
