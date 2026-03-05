@@ -30,9 +30,14 @@ RUN git clone https://github.com/digininja/DVWA.git /var/www/html/dvwa || true
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
-# Download OWASP CRS
-RUN git clone https://github.com/coreruleset/coreruleset /usr/share/modsecurity-crs \
-    && cp /usr/share/modsecurity-crs/crs-setup.conf.example /usr/share/modsecurity-crs/crs-setup.conf
+# Ensure OWASP CRS exists (clone only if missing)
+RUN if [ ! -d /usr/share/modsecurity-crs/rules ] || [ -z "$(ls -A /usr/share/modsecurity-crs/rules 2>/dev/null)" ]; then \
+        rm -rf /usr/share/modsecurity-crs; \
+        git clone https://github.com/coreruleset/coreruleset /usr/share/modsecurity-crs; \
+    fi \
+    && if [ -f /usr/share/modsecurity-crs/crs-setup.conf.example ]; then \
+        cp /usr/share/modsecurity-crs/crs-setup.conf.example /usr/share/modsecurity-crs/crs-setup.conf; \
+    fi
 
 # Create log directories
 RUN mkdir -p /var/log/modsec \
