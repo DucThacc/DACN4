@@ -40,7 +40,7 @@ RUN mkdir -p /var/log/modsec \
 
 # Copy custom ModSecurity config (sẽ được mount)
 # Default security config
-COPY configs/modsecurity/modsecurity.conf /etc/apache2/mods-available/modsecurity.conf || true
+COPY configs/modsecurity/modsecurity.conf /etc/apache2/mods-available/modsecurity.conf
 
 # Expose port
 EXPOSE 80
